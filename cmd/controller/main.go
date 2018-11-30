@@ -10,17 +10,18 @@ import (
 	clientset "github.com/yolo3301/kcrd/pkg/client/clientset/versioned"
 	informers "github.com/yolo3301/kcrd/pkg/client/informers/externalversions"
 	"github.com/yolo3301/kcrd/pkg/reconciler"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 func main() {
-	kubeConfigPath := os.Getenv("HOME") + "/.kube/config"
-	cfg, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	// kubeConfigPath := os.Getenv("HOME") + "/.kube/config"
+	cfg, err := clientcmd.BuildConfigFromFlags("", "")
 	if err != nil {
 		log.Fatalf("Error building kubeconfig: %v", err)
 	}
 
-	// kubeClient, err := kubernetes.NewForConfig(cfg)
+	// _, err = kubernetes.NewForConfig(cfg)
 	// if err != nil {
 	// 	log.Fatalf("Error building kubernetes clientset: %v", err)
 	// }
@@ -37,6 +38,11 @@ func main() {
 
 	stopCh := make(chan struct{})
 	defer close(stopCh)
+
+	informerFactory.Start(stopCh)
+	if ok := cache.WaitForCacheSync(stopCh, informer.Informer().HasSynced); !ok {
+		log.Fatal("failed to wait for cache")
+	}
 
 	go controller.Run(stopCh)
 

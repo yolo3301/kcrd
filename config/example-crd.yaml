@@ -1,0 +1,6 @@
+apiVersion: queue.yolo.dev/v1alpha1
+kind: Queue
+metadata:
+  name: first-queue
+spec:
+  type: FirstQueue-Test
